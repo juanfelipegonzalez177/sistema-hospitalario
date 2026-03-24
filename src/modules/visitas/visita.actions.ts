@@ -7,18 +7,17 @@ import { VisitaRepository } from "@/modules/visitas/visita.repository";
 
 // Schema de validacion para la visita completa
 const CreateVisitaSchema = z.object({
-  pacienteId: z.coerce.number().positive("Seleccione un paciente"),
-  medicoId:   z.coerce.number().positive("Seleccione un medico"),
-  fecha:      z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha invalida"),
-  hora:       z.string().regex(/^\d{2}:\d{2}$/, "Hora invalida"),
-  motivoId:   z.coerce.number().positive().optional(),
-  diagnostico: z.string().min(10).optional(),
-  // Signos vitales: todos opcionales en conjunto
-  frecuenciaCardiaca:    z.coerce.number().min(30).max(300).optional(),
-  presionArterial:       z.string().regex(/^\d{2,3}\/\d{2,3}$/).optional(),
-  frecuenciaRespiratoria: z.coerce.number().min(5).max(60).optional(),
-  temperatura:           z.coerce.number().min(32).max(45).optional(),
-  saturacionOxigeno:     z.coerce.number().min(0).max(100).optional(),
+  pacienteId:  z.coerce.number().positive("Seleccione un paciente"),
+  medicoId:    z.coerce.number().positive("Seleccione un medico"),
+  fecha:       z.string().min(1, "Fecha requerida"),
+  hora:        z.string().min(1, "Hora requerida"),
+  motivoId:    z.coerce.number().optional(),
+  diagnostico: z.string().optional(),
+  frecuenciaCardiaca:     z.coerce.number().optional(),
+  presionArterial:        z.string().optional(),
+  frecuenciaRespiratoria: z.coerce.number().optional(),
+  temperatura:            z.coerce.number().optional(),
+  saturacionOxigeno:      z.coerce.number().optional(),
 });
 
 export async function createVisitaAction(
@@ -30,8 +29,12 @@ export async function createVisitaAction(
     Array.from(formData.entries()).map(([key, val]) => [key, val])
   );
 
+  console.log("rawData:", rawData);
+
   // Validar con Zod
   const validation = CreateVisitaSchema.safeParse(rawData);
+
+  console.log("validation:", validation);
 
   if (!validation.success) {
     return {
@@ -65,6 +68,7 @@ export async function createVisitaAction(
   try {
     await repo.createCompleta(visitaDTO);
   } catch (err) {
+    console.error("Error creando visita:", err);
     return {
       success: false,
       message: err instanceof Error ? err.message : "Error al crear visita",
