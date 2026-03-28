@@ -1,7 +1,3 @@
-/**
- * @file src/app/dashboard/layout.tsx
- */
-
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layouts/Sidebar";
