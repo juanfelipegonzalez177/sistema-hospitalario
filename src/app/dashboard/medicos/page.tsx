@@ -1,11 +1,17 @@
 import { MedicoRepository } from "@/modules/medicos/medico.repository";
-import { Plus } from "lucide-react";
+import { MedicoFormModal } from "./_components/MedicoFormModal";
+import { MedicosTable } from "./_components/MedicosTable";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Medicos" };
 
 export default async function MedicosPage() {
   const repo = new MedicoRepository();
   const medicos = await repo.findAll();
+
+  const supabase = await createServerSupabaseClient();
+  const { data: especialidades } = await supabase.from("especialidades").select("especialidadid, nombre").order("nombre");
+  const { data: hospitales } = await supabase.from("hospitales").select("hospitalid, nombre").order("nombre");
 
   return (
     <div className="space-y-6">
@@ -16,39 +22,20 @@ export default async function MedicosPage() {
             {medicos.length} medico{medicos.length !== 1 ? "s" : ""} registrados
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-green-600
-          hover:bg-green-700 text-white text-sm font-medium rounded-lg">
-          <Plus size={16} />
-          Nuevo Medico
-        </button>
+        <MedicoFormModal
+          mode="create"
+          especialidades={especialidades || []}
+          hospitales={hospitales || []}
+        />
       </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Nombre</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Especialidad</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Hospital</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Telefono</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Correo</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {medicos.map((m) => (
-              <tr key={m.medicoId} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3 font-medium text-gray-900">
-                  Dr. {m.nombre} {m.apellido}
-                </td>
-                <td className="px-4 py-3 text-gray-600">{m.especialidad.nombre}</td>
-                <td className="px-4 py-3 text-gray-600">{m.hospital.nombre}</td>
-                <td className="px-4 py-3 text-gray-600">{m.telefono}</td>
-                <td className="px-4 py-3 text-gray-600">{m.correoElectronico}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {medicos.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">
+          <p className="text-lg">No hay médicos registrados</p>
+          <p className="text-sm mt-1">Haz clic en "Nuevo Médico" para agregar uno.</p>
+        </div>
+      ) : (
+        <MedicosTable medicos={medicos} />
+      )}
     </div>
   );
 }
