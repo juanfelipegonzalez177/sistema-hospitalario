@@ -2,8 +2,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
   Users, CalendarCheck, Stethoscope, Building2,
-  UserPlus, ClipboardList, FlaskConical, FileText,
-  ShieldAlert, Pill, Activity, CheckCircle2, AlertCircle, Clock,
+  Activity, CheckCircle2, Clock,
 } from "lucide-react";
 import { VisitasChart } from "./VisitasChart";
 import { AnimatedCounter } from "./AnimatedCounter";
@@ -35,7 +34,6 @@ async function getDashboardStats() {
     supabase.from("visitas").select("fecha").gte("fecha", desde),
   ]);
 
-  // Agrupar visitas por mes
   const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
   const conteo: Record<string, number> = {};
   for (let i = 0; i < 12; i++) {
@@ -63,17 +61,6 @@ async function getDashboardStats() {
   };
 }
 
-const accesosRapidos = [
-  { label: "Nuevo Paciente", href: "/dashboard/pacientes/nuevo",  icon: UserPlus,      color: "text-green-600 bg-green-50 border-green-200"    },
-  { label: "Nueva Visita",   href: "/dashboard/visitas/nuevo",    icon: CalendarCheck, color: "text-blue-600 bg-blue-50 border-blue-200"      },
-  { label: "Tratamientos",   href: "/dashboard/tratamientos",     icon: ClipboardList, color: "text-purple-600 bg-purple-50 border-purple-200" },
-  { label: "Medicamentos",   href: "/dashboard/medicamentos",     icon: Pill,          color: "text-teal-600 bg-teal-50 border-teal-200"       },
-  { label: "Exámenes",       href: "/dashboard/examenes",         icon: FlaskConical,  color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
-  { label: "Fórmulas",       href: "/dashboard/formulas",         icon: FileText,      color: "text-indigo-600 bg-indigo-50 border-indigo-200" },
-  { label: "Incapacidades",  href: "/dashboard/incapacidades",    icon: ShieldAlert,   color: "text-red-600 bg-red-50 border-red-200"          },
-  { label: "Especialidades", href: "/dashboard/especialidades",   icon: Stethoscope,   color: "text-orange-600 bg-orange-50 border-orange-200" },
-];
-
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
   const hoy = new Date().toLocaleDateString("es-CO", {
@@ -81,10 +68,10 @@ export default async function DashboardPage() {
   });
 
   const estadoSistema = [
-    { label: "Base de datos",     estado: "ok",      icon: CheckCircle2 },
-    { label: "Autenticación",     estado: "ok",      icon: CheckCircle2 },
-    { label: "Backups",           estado: "ok",      icon: CheckCircle2 },
-    { label: "Servidor",          estado: "ok",      icon: CheckCircle2 },
+    { label: "Base de datos",  icon: CheckCircle2 },
+    { label: "Autenticación",  icon: CheckCircle2 },
+    { label: "Backups",        icon: CheckCircle2 },
+    { label: "Servidor",       icon: CheckCircle2 },
   ];
 
   return (
@@ -131,27 +118,9 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Accesos rápidos */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Accesos Rápidos</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-          {accesosRapidos.map(({ label, href, icon: Icon, color }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`flex flex-col items-center gap-1.5 rounded-lg border px-2 py-3 text-center text-xs font-medium transition-all hover:scale-105 hover:shadow-sm ${color}`}
-            >
-              <Icon size={18} />
-              <span className="leading-tight">{label}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {/* Gráfica + Estado del sistema */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Gráfica de visitas - ocupa 2/3 */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -163,23 +132,18 @@ export default async function DashboardPage() {
           <VisitasChart data={stats.visitasPorMes} />
         </div>
 
-        {/* Estado del sistema - ocupa 1/3 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-900">Estado del Sistema</h2>
             <CheckCircle2 size={16} className="text-green-500" />
           </div>
           <div className="space-y-3">
-            {estadoSistema.map(({ label, estado, icon: Icon }) => (
+            {estadoSistema.map(({ label, icon: Icon }) => (
               <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                 <span className="text-sm text-gray-600">{label}</span>
-                <span className={`flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
-                  estado === "ok"      ? "bg-green-50 text-green-700" :
-                  estado === "warning" ? "bg-yellow-50 text-yellow-700" :
-                                         "bg-red-50 text-red-700"
-                }`}>
+                <span className="flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">
                   <Icon size={12} />
-                  {estado === "ok" ? "Operativo" : estado === "warning" ? "Alerta" : "Error"}
+                  Operativo
                 </span>
               </div>
             ))}
@@ -196,7 +160,7 @@ export default async function DashboardPage() {
       {/* Timeline + Tablas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Actividad reciente - timeline */}
+        {/* Actividad reciente */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h2 className="text-sm font-semibold text-gray-900 mb-4">Actividad Reciente</h2>
           <div className="relative">
@@ -205,7 +169,6 @@ export default async function DashboardPage() {
               {stats.ultimasVisitas.length === 0 ? (
                 <p className="text-xs text-gray-400 pl-8">Sin actividad reciente</p>
               ) : (
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 stats.ultimasVisitas.map((v: any) => (
                   <div key={v.visitaid} className="flex gap-3 relative">
                     <span className="w-6 h-6 rounded-full bg-green-100 border-2 border-green-400 flex-shrink-0 z-10" />
@@ -226,9 +189,8 @@ export default async function DashboardPage() {
 
         {/* Últimas visitas */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div className="px-4 py-3 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-900">Últimas Visitas</h2>
-            <Link href="/dashboard/visitas" className="text-xs text-green-600 hover:underline">Ver todas</Link>
           </div>
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
@@ -241,7 +203,6 @@ export default async function DashboardPage() {
               {stats.ultimasVisitas.length === 0 ? (
                 <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400 text-xs">Sin visitas</td></tr>
               ) : (
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 stats.ultimasVisitas.map((v: any) => (
                   <tr key={v.visitaid} className="hover:bg-gray-50">
                     <td className="px-4 py-2.5 font-medium text-gray-800 text-xs">
@@ -257,9 +218,8 @@ export default async function DashboardPage() {
 
         {/* Últimos pacientes */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div className="px-4 py-3 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-900">Últimos Pacientes</h2>
-            <Link href="/dashboard/pacientes" className="text-xs text-green-600 hover:underline">Ver todos</Link>
           </div>
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
@@ -272,7 +232,6 @@ export default async function DashboardPage() {
               {stats.ultimasPacientes.length === 0 ? (
                 <tr><td colSpan={2} className="px-4 py-6 text-center text-gray-400 text-xs">Sin pacientes</td></tr>
               ) : (
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 stats.ultimasPacientes.map((p: any) => (
                   <tr key={p.pacienteid} className="hover:bg-gray-50">
                     <td className="px-4 py-2.5 text-xs font-medium text-gray-800 flex items-center gap-2">
